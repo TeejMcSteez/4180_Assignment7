@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 
 import edu.charlotte.assignment07.models.SortSelection;
@@ -93,6 +94,31 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
     public void cancelAndPopBackStack() {
         getSupportFragmentManager().popBackStack();
     }
+    Comparator<Task> taskNameComparator = new Comparator<Task>() {
+        @Override
+        public int compare(Task o1, Task o2) {
+            return o1.name.compareTo(o2.name);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return false;
+        }
+    };
+
+    Comparator<Task> taskDateComparator = new Comparator<Task>() {
+        @Override
+        public int compare(Task o1, Task o2) {
+            return o1.date.compareTo(o2.date);
+        }
+    };
+
+    Comparator<Task> taskPriorityComparator = new Comparator<Task>() {
+        @Override
+        public int compare(Task o1, Task o2) {
+            return Integer.compare(o1.priority, o2.priority);
+        }
+    };
 
     @Override
     public void sendSortSelection(SortSelection sortSelection) {
@@ -101,6 +127,45 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
             fragment.setSortSelection(sortSelection);
         }
         getSupportFragmentManager().popBackStack();
+        // TODO: Sort through the array depending on the sortSelection variables
+        switch (sortSelection.getSortAttribute()) {
+            case "name":
+                switch (sortSelection.getSortOrder()) {
+                    case "ASC":
+                        mTasks.sort(taskNameComparator);
+                        break;
+                    case "DESC":
+                        mTasks.sort(taskNameComparator.reversed());
+                        break;
+                }
+                break;
+            case "date":
+                switch (sortSelection.getSortOrder()) {
+                    case "ASC":
+                        mTasks.sort(taskDateComparator);
+                        break;
+                    case "DESC":
+                        mTasks.sort(taskDateComparator.reversed());
+                        break;
+                }
+                break;
+            case "priority":
+                switch (sortSelection.getSortOrder()) {
+                    case "ASC":
+                        mTasks.sort(taskPriorityComparator);
+                        break;
+                    case "DESC":
+                        mTasks.sort(taskPriorityComparator.reversed());
+                        break;
+                }
+                break;
+            default:
+                throw new RuntimeException("Invalid selected sort attribute");
+        }
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new TasksFragment(), "tasks-fragment")
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
