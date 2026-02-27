@@ -2,9 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:id="@+id/taskDetailView"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".TaskDetailsFragment">
+    tools:context=".TaskDetailsFragment"
+    tools:layout_editor_absoluteX="128dp"
+    tools:layout_editor_absoluteY="2dp">
 
     <TextView
         android:id="@+id/taskName"
@@ -30,18 +33,16 @@
         android:layout_height="wrap_content"
         android:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/taskDate" />
+        app:layout_constraintStart_toEndOf="@+id/taskDate"
+        app:layout_constraintTop_toBottomOf="@+id/trashButton" />
 
     <ImageButton
         android:id="@+id/trashButton"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.529"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/taskPriority"
+        android:layout_width="50dp"
+        android:layout_height="19dp"
         android:src="@drawable/ic_delete"
-        />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/taskName"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

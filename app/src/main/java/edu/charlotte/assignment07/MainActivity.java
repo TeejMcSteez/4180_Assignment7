@@ -8,6 +8,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -16,7 +18,7 @@ import edu.charlotte.assignment07.models.SortSelection;
 import edu.charlotte.assignment07.models.Task;
 
 public class MainActivity extends AppCompatActivity implements TasksFragment.TasksListener,
-        CreateTaskFragment.CreateTaskListener, SelectTaskDateFragment.SelectTaskDateListener, SortFragment.SortListener {
+        CreateTaskFragment.CreateTaskListener, SelectTaskDateFragment.SelectTaskDateListener, SortFragment.SortListener, TaskSummaryFragment.tsListener {
     ArrayList<Task> mTasks = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,18 +56,16 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
 
     @Override
     public void clearAllTasks() {
-
         mTasks.clear();
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.main, new TasksFragment(), "tasks-fragment")
-                .addToBackStack(null)
                 .commit();
     }
 
     @Override
     public void gotoTaskDetails(Task task) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, TaskDetailsFragment.newInstance(task))
+                .replace(R.id.main, TaskSummaryFragment.newInstance(task))
                 .addToBackStack(null)
                 .commit();
     }
@@ -76,12 +76,23 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
     }
 
     @Override
-    public void deleteTask(Task task) throws IllegalAccessException, InstantiationException {
+    public void deleteTask(Task task) {
         mTasks.remove(task);
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main, TasksFragment.class.newInstance())
-                .addToBackStack(null)
+                .replace(R.id.main, new TasksFragment(), "tasks-fragment")
                 .commit();
+    }
+
+    public void deleteTaskDetails(Task task) {
+        mTasks.remove(task);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new TasksFragment(), "tasks-fragment")
+                .commit();
+    }
+
+    @Override
+    public void goBack() {
+        getSupportFragmentManager().popBackStack();
     }
 
     @Override
@@ -94,15 +105,11 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
     public void cancelAndPopBackStack() {
         getSupportFragmentManager().popBackStack();
     }
+    
     Comparator<Task> taskNameComparator = new Comparator<Task>() {
         @Override
         public int compare(Task o1, Task o2) {
             return o1.name.compareTo(o2.name);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return false;
         }
     };
 
@@ -122,49 +129,33 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
 
     @Override
     public void sendSortSelection(SortSelection sortSelection) {
-        TasksFragment fragment = (TasksFragment) getSupportFragmentManager().findFragmentByTag("tasks-fragment");
-        if (fragment != null) {
-            fragment.setSortSelection(sortSelection);
-        }
-        getSupportFragmentManager().popBackStack();
-        // TODO: Sort through the array depending on the sortSelection variables
         switch (sortSelection.getSortAttribute()) {
             case "name":
-                switch (sortSelection.getSortOrder()) {
-                    case "ASC":
-                        mTasks.sort(taskNameComparator);
-                        break;
-                    case "DESC":
-                        mTasks.sort(taskNameComparator.reversed());
-                        break;
+                if ("ASC".equals(sortSelection.getSortOrder())) {
+                    mTasks.sort(taskNameComparator);
+                } else {
+                    mTasks.sort(taskNameComparator.reversed());
                 }
                 break;
             case "date":
-                switch (sortSelection.getSortOrder()) {
-                    case "ASC":
-                        mTasks.sort(taskDateComparator);
-                        break;
-                    case "DESC":
-                        mTasks.sort(taskDateComparator.reversed());
-                        break;
+                if ("ASC".equals(sortSelection.getSortOrder())) {
+                    mTasks.sort(taskDateComparator);
+                } else {
+                    mTasks.sort(taskDateComparator.reversed());
                 }
                 break;
             case "priority":
-                switch (sortSelection.getSortOrder()) {
-                    case "ASC":
-                        mTasks.sort(taskPriorityComparator);
-                        break;
-                    case "DESC":
-                        mTasks.sort(taskPriorityComparator.reversed());
-                        break;
+                if ("ASC".equals(sortSelection.getSortOrder())) {
+                    mTasks.sort(taskPriorityComparator);
+                } else {
+                    mTasks.sort(taskPriorityComparator.reversed());
                 }
                 break;
-            default:
-                throw new RuntimeException("Invalid selected sort attribute");
         }
+        
+        getSupportFragmentManager().popBackStack();
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.main, new TasksFragment(), "tasks-fragment")
-                .addToBackStack(null)
                 .commit();
     }
 
@@ -184,5 +175,12 @@ public class MainActivity extends AppCompatActivity implements TasksFragment.Tas
                 .addToBackStack(null)
                 .commit();
     }
-}
 
+    @Override
+    public void deleteTaskFromSummary(@NotNull Task task) {
+        mTasks.remove(task);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, new TasksFragment(), "tasks-fragment")
+                .commit();
+    }
+}

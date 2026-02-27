@@ -1,24 +1,30 @@
 package edu.charlotte.assignment07
 
+import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import edu.charlotte.assignment07.databinding.FragmentTaskSummaryBinding
 import edu.charlotte.assignment07.models.Task
+import java.util.Date
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [TaskSummaryFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class TaskSummaryFragment : Fragment() {
-    // TODO: Rename and change types of parameters
     private var param1: Task? = null
+    lateinit var binding: FragmentTaskSummaryBinding
+    lateinit var mListener: tsListener
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is tsListener) {
+            mListener = context
+        } else {
+            throw RuntimeException("$context must implement tsListener")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,18 +37,48 @@ class TaskSummaryFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_task_summary, container, false)
+        binding = FragmentTaskSummaryBinding.inflate(layoutInflater, container, false)
+        return binding.root
+    }
+
+    private fun getPriority(p: Int?): String {
+        return when (p) {
+            1 -> "Low"
+            2 -> "Medium"
+            3 -> "High"
+            else -> "Unknown"
+        }
+    }
+
+    private fun formatDate(date: Date?): String {
+        if (date == null) return ""
+        val month = date.month + 1
+        val day = date.date
+        val year = date.year + 1900
+
+        return "$month/$day/$year"
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        activity?.title = "Task Summary"
+        
+        binding.taskNameDisplay.text = param1?.name
+        binding.taskDateDisplay.text = formatDate(param1?.date)
+        binding.taskPriorityDisplay.text = getPriority(param1?.priority)
+        
+        binding.taskDeleteButton.setOnClickListener {
+            param1?.let { task ->
+                mListener.deleteTaskFromSummary(task)
+            }
+        }
+        
+        binding.taskbackButton.setOnClickListener {
+            mListener.goBack()
+        }
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @return A new instance of fragment TaskSummaryFragment.
-         */
         @JvmStatic
         fun newInstance(param1: Task) =
             TaskSummaryFragment().apply {
@@ -52,7 +88,8 @@ class TaskSummaryFragment : Fragment() {
             }
     }
 
-    interface deleteTaskListener {
+    interface tsListener {
         fun deleteTaskFromSummary(task: Task)
+        fun goBack()
     }
 }

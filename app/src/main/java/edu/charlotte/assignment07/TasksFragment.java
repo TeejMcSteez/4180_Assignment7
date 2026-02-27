@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -58,7 +57,7 @@ public class TasksFragment extends Fragment {
             return new TaskViewHolder(view);
         }
 
-        private String getPriority(int p) throws RuntimeException {
+        private String getPriority(int p) {
             switch(p) {
                 case 1:
                     return "Low";
@@ -67,21 +66,17 @@ public class TasksFragment extends Fragment {
                 case 3:
                     return "High";
                 default:
-                    throw new RuntimeException("Invalid priority integer");
+                    return "Unknown";
             }
         }
 
         private String formatDate(Date date) {
-            int month = date.getMonth();
-            int day = date.getDay();
-            int year = date.getYear();
+            if (date == null) return "";
+            int month = date.getMonth() + 1;
+            int day = date.getDate();
+            int year = date.getYear() + 1900;
 
-            String monthStr = Integer.toString(month);
-            String dayStr = Integer.toString(day);
-            String yearStr = Integer.toString(year);
-
-            return monthStr + "/" + dayStr + "/" + yearStr;
-
+            return month + "/" + day + "/" + year;
         }
 
         @Override
@@ -93,68 +88,51 @@ public class TasksFragment extends Fragment {
             holder.trash.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        mListener.deleteTask(task);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (java.lang.InstantiationException e) {
-                        throw new RuntimeException(e);
-                    }
+                    mListener.deleteTask(task);
+                }
+            });
+
+            holder.rootView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mListener.gotoTaskDetails(task);
                 }
             });
         }
 
         @Override
         public int getItemCount() {
-            return mListener.getTasks().size();
+            return data.size();
         }
     }
 
     FragmentTasksBinding binding;
-    SortSelection sortSelection;
     TasksAdapter tasksAdapter;
-    RecyclerView recyclerView;
-    RecyclerView.LayoutManager layoutManager;
-
-    public void setSortSelection(SortSelection sortSelection) {
-        this.sortSelection = sortSelection;
-
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-
-    }
+    ArrayList<Task> mTasks = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTasksBinding.inflate(inflater, container, false);
-        recyclerView = binding.recyclerView;
-        recyclerView.setHasFixedSize(true);
-
-        layoutManager = new LinearLayoutManager(getActivity());
-        recyclerView.setLayoutManager(layoutManager);
-        tasksAdapter = new TasksAdapter(mListener.getTasks());
-        recyclerView.setAdapter(tasksAdapter);
         return binding.getRoot();
     }
-
-    ArrayList<Task> mTasks = new ArrayList<>();
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getActivity().setTitle("Tasks");
+        
         mTasks = mListener.getTasks();
+        
+        binding.recyclerView.setHasFixedSize(true);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        tasksAdapter = new TasksAdapter(mTasks);
+        binding.recyclerView.setAdapter(tasksAdapter);
 
 
         binding.buttonClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mListener.clearAllTasks();
-                mTasks.clear();
             }
         });
 
@@ -187,15 +165,10 @@ public class TasksFragment extends Fragment {
 
     interface TasksListener {
         void gotoCreateTask();
-
         void gotoSelectSort();
-
         void clearAllTasks();
-
         void gotoTaskDetails(Task task);
-
         ArrayList<Task> getTasks();
-
-        void deleteTask(Task task) throws IllegalAccessException, java.lang.InstantiationException;
+        void deleteTask(Task task);
     }
 }
